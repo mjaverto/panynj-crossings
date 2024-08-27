@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Select, Title, Grid, Card, LoadingOverlay, MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
@@ -19,21 +19,20 @@ function App() {
 
   async function fetchData() {
     setIsLoading(true);
-
+  
     try {
-      const adjustedDateTime = new Date(selectedDateTime.getTime() + (5 * 60 * 60 * 1000));
-
-      // Construct the Supabase query with interval handling
+      const adjustedDateTime = new Date(selectedDateTimeRef.current.getTime() + (5 * 60 * 60 * 1000));
+  
       let query = supabase
         .from('crossing_times')
         .select('*')
-        .eq('crossing_display_name', selectedCrossing)
+        .eq('crossing_display_name', selectedCrossingRef.current)
         .lte('time_stamp', adjustedDateTime.toISOString())
         .order('time_stamp', { ascending: false })
         .limit(100);
-
+  
       const { data, error } = await query;
-
+  
       if (error) {
         console.error('Error fetching data from Supabase:', error);
       } else {
@@ -46,17 +45,25 @@ function App() {
       setIsLoading(false);
     }
   }
+  
 
-  useEffect(() => {
-    fetchData(); // Fetch data initially when the component mounts
-    const intervalId = setInterval(fetchData, 60000);
-    // Clean up the interval when the component unmounts
-    return () => clearInterval(intervalId);
-  }, [selectedInterval]); // Include selectedInterval in the dependency array
+
+
+  const selectedCrossingRef = useRef(selectedCrossing);
+const selectedDateTimeRef = useRef(selectedDateTime);
+
+useEffect(() => {
+  selectedCrossingRef.current = selectedCrossing;
+  selectedDateTimeRef.current = selectedDateTime;
+}, [selectedCrossing, selectedDateTime]);
+
+useEffect(() => {
+  fetchData(); // This will now use the updated refs
+}, [selectedCrossing, selectedDateTime]);
 
   function add5Hours() {
     const currentTime = new Date(); // Get the current time
-    const fiveHoursInMilliseconds =120* 5 * 60 * 60 * 1000; // Calculate milliseconds in 5 hours
+    const fiveHoursInMilliseconds =  60 * 60 * 1000; // Calculate milliseconds in 5 hours
 
     // Create a new Date object representing the time 5 hours in the future
     const newTime = new Date(currentTime.getTime() + fiveHoursInMilliseconds);
@@ -100,8 +107,9 @@ function App() {
                 ]}
                 value={selectedCrossing}
                 onChange={(value) => {
-                  setSelectedCrossing(value);
-                  fetchData(); // Fetch data when the selected crossing changes
+                  if (value) { // Ensure value is not null or empty
+                    setSelectedCrossing(value);
+                  }
                 }}
               />
 
@@ -112,7 +120,6 @@ function App() {
                 valueFormat="MMM DD YYYY hh:mm A"
                 onChange={(value) => {
                   setSelectedDateTime(value); 
-                  fetchData(); // Fetch data when the selected crossing changes
                 }}
                 mt="md"
               />
@@ -144,8 +151,8 @@ function App() {
                     activeDotProps={{ r: 8 }}
                     withLegend
                     series={[
-                      { name: 'Route Speed', color: 'red.6' },
-                      { name: 'Route Travel Time', color: 'blue.6' },
+                      { name: 'Route Speed', color: 'green.6' },
+                      { name: 'Route Travel Time', color: 'red.6' },
                     ]}
                   >
                   </LineChart>
@@ -161,8 +168,8 @@ function App() {
                     activeDotProps={{ r: 8 }}
                     withLegend
                     series={[
-                      { name: 'Route Speed', color: 'red.6' },
-                      { name: 'Route Travel Time', color: 'blue.6' },
+                      { name: 'Route Speed', color: 'green.6' },
+                      { name: 'Route Travel Time', color: 'red.6' },
                     ]}
                   >
                   </LineChart>
