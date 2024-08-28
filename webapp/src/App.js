@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Select, Title, Grid, Card, LoadingOverlay, MantineProvider, Switch } from '@mantine/core';
+import { Select, Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/charts/styles.css';
@@ -112,9 +112,9 @@ function App() {
     <MantineProvider>
       <div>
         <Title order={2} align="center" mb="xl">Crossing Data Visualization</Title>
-
-        <Grid gutter="xl">
-          <Grid.Col span={{ base: 12, md: 12, lg: 2 }}>
+        <Container size="xxl">
+        <Grid gutter="lg">
+          <Grid.Col span={{ base: 12, md: 12, lg: 3 }}>
             <Card withBorder shadow="sm" p="lg">
               <Select
                 label="Select Crossing"
@@ -155,7 +155,6 @@ function App() {
                 onChange={(event) => {
                   const isChecked = event.currentTarget.checked;
                   setIsAutoRefreshOn(isChecked);
-                  
                   // Trigger an immediate refresh when auto-refresh is turned on
                   if (isChecked) {
                     handleRefresh();
@@ -167,7 +166,7 @@ function App() {
             </Card>
           </Grid.Col>
 
-          <Grid.Col span={{ base: 12, md: 12, lg: 10 }}>
+          <Grid.Col span={{ base: 12, md: 12, lg: 9 }}>
             <Card withBorder shadow="sm" p="lg">
               <LoadingOverlay visible={isLoading} />
               {!isLoading && (
@@ -187,6 +186,11 @@ function App() {
                       { name: 'Route Speed', color: 'green.6' },
                       { name: 'Route Travel Time', color: 'red.6' },
                     ]}
+                    xAxisProps={{
+                      tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
+                      angle: 0,
+                      minTickGap: 100
+                    }}
                   >
                   </LineChart>
 
@@ -204,6 +208,11 @@ function App() {
                       { name: 'Route Speed', color: 'green.6' },
                       { name: 'Route Travel Time', color: 'red.6' },
                     ]}
+                    xAxisProps={{
+                      tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
+                      angle: 0,
+                      minTickGap: 100
+                    }}
                   >
                   </LineChart>
                 </>
@@ -211,6 +220,7 @@ function App() {
             </Card>
           </Grid.Col>
         </Grid>
+        </Container>
       </div>
     </MantineProvider>
   );
