@@ -68,14 +68,6 @@ useEffect(() => {
     // eslint-disable-next-line
 }, [selectedCrossing, selectedDateTime]);
 
-  function add5Hours() {
-    const currentTime = new Date(); // Get the current time
-    const fiveHoursInMilliseconds =  60 * 60 * 1000; // Calculate milliseconds in 5 hours
-
-    // Create a new Date object representing the time 5 hours in the future
-    const newTime = new Date(currentTime.getTime() + fiveHoursInMilliseconds);
-    return newTime;
-  }
   // Function to format data for Mantine Charts
   function formatDataForMantineChart(data) {
     // Helper function to transform data for a specific direction
