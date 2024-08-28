@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Select, Title, Grid, Card, LoadingOverlay, MantineProvider } from '@mantine/core';
+import { Select, Title, Grid, Card, LoadingOverlay, MantineProvider, Switch } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/charts/styles.css';
@@ -17,13 +17,14 @@ function App() {
   const [selectedInterval, setSelectedInterval] = useState('1'); // State for the interval dropdown
   const [chartData, setChartData] = useState({ westbound: [], eastbound: [] });
   const [isLoading, setIsLoading] = useState(false);
+  const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(false);
 
   async function fetchData() {
     setIsLoading(true);
-  
+
     try {
       const adjustedDateTime = moment.tz(selectedDateTimeRef.current, 'America/New_York').utc().toDate();
-  
+
       let query = supabase
         .from('crossing_times')
         .select('*')
@@ -31,9 +32,9 @@ function App() {
         .lte('time_stamp', adjustedDateTime.toISOString())
         .order('time_stamp', { ascending: false })
         .limit(1000);
-  
+
       const { data, error } = await query;
-  
+
       if (error) {
         console.error('Error fetching data from Supabase:', error);
       } else {
@@ -46,46 +47,48 @@ function App() {
       setIsLoading(false);
     }
   }
-  
 
-const selectedCrossingRef = useRef(selectedCrossing);
-const selectedDateTimeRef = useRef(selectedDateTime);
 
-useEffect(() => {
-  selectedCrossingRef.current = selectedCrossing;
-  selectedDateTimeRef.current = selectedDateTime;
-}, [selectedCrossing, selectedDateTime]);
+  const selectedCrossingRef = useRef(selectedCrossing);
+  const selectedDateTimeRef = useRef(selectedDateTime);
 
-useEffect(() => {
-  fetchData(); // Run fetchData on initial load
-}, []);
+  useEffect(() => {
+    selectedCrossingRef.current = selectedCrossing;
+    selectedDateTimeRef.current = selectedDateTime;
+  }, [selectedCrossing, selectedDateTime]);
 
-useEffect(() => {
-  const handleRefresh = () => {
-    const currentTime = new Date();
-    currentTime.setSeconds(0, 0); // Set the time to the exact minute, zeroing out seconds and milliseconds
+  useEffect(() => {
+    fetchData(); // Run fetchData on initial load
+  }, []);
 
-    // Convert both times to strings for easy comparison
-    const formattedCurrentTime = moment.tz(currentTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
+  useEffect(() => {
+    const handleRefresh = () => {
+      const currentTime = new Date();
+      currentTime.setSeconds(0, 0); // Set the time to the exact minute, zeroing out seconds and milliseconds
 
-    const formattedSelectedTime = moment.tz(selectedDateTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
+      // Convert both times to strings for easy comparison
+      const formattedCurrentTime = moment.tz(currentTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
 
-    // Update selectedDateTime only if the minute has actually changed
-    if (formattedCurrentTime !== formattedSelectedTime) {
-      setSelectedDateTime(currentTime); // Update state with the new time
-      fetchData(); // Call fetchData using the updated time
+      const formattedSelectedTime = moment.tz(selectedDateTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
+
+      // Update selectedDateTime only if the minute has actually changed
+      if (formattedCurrentTime !== formattedSelectedTime) {
+        setSelectedDateTime(currentTime); // Update state with the new time
+        fetchData(); // Call fetchData using the updated time
+      }
+    };
+
+    handleRefresh(); // Initial fetch
+
+    // Only set up an interval if auto-refresh is on
+    if (isAutoRefreshOn) {
+      const intervalId = setInterval(handleRefresh, 60000);
+
+      // Clear interval on cleanup
+      return () => clearInterval(intervalId);
     }
-  };
-
-  handleRefresh(); // Initial fetch
-
-  // Set up an interval to auto-refresh every 1 minute
-  const intervalId = setInterval(handleRefresh, 60000);
-
-  // Clean up the interval on component unmount
-  return () => clearInterval(intervalId);
     // eslint-disable-next-line
-}, [selectedCrossing, selectedDateTime]);
+  }, [isAutoRefreshOn, selectedCrossing, selectedDateTime]);
 
   // Function to format data for Mantine Charts
   function formatDataForMantineChart(data) {
@@ -97,15 +100,15 @@ useEffect(() => {
         'Route Travel Time': item.route_travel_time
       }));
     };
-  
+
     const westboundData = data.filter(item => item.cardinal_direction === 'westbound');
     const eastboundData = data.filter(item => item.cardinal_direction === 'eastbound');
-  
+
     return {
       westbound: formatDataForDirection(westboundData),
       eastbound: formatDataForDirection(eastboundData)
     };
-  }  
+  }
 
   return (
     <MantineProvider>
@@ -137,7 +140,7 @@ useEffect(() => {
                 value={selectedDateTime}
                 valueFormat="MMM DD YYYY hh:mm A"
                 onChange={(value) => {
-                  setSelectedDateTime(value); 
+                  setSelectedDateTime(value);
                 }}
                 mt="md"
               />
@@ -147,6 +150,12 @@ useEffect(() => {
                 onChange={setSelectedInterval} // Update state on change
                 data={['1', '5', '15', '60']}
                 disabled="true"
+              />
+              <Switch
+                label="Auto-Refresh"
+                checked={isAutoRefreshOn}
+                onChange={(event) => setIsAutoRefreshOn(event.currentTarget.checked)}
+                mt="md"
               />
 
             </Card>
