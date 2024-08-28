@@ -6,13 +6,14 @@ import '@mantine/dates/styles.css';
 import '@mantine/charts/styles.css';
 import { DateTimePicker } from '@mantine/dates';
 import { LineChart } from '@mantine/charts';
+import moment from 'moment-timezone';
 
 // Supabase client initialization 
 const supabase = createClient('https://jurzflavaojycfbqjyex.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1cnpmbGF2YW9qeWNmYnFqeWV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ2ODIxNzcsImV4cCI6MjA0MDI1ODE3N30.pzgMDzfizUDWa5pBrnNLklTKd2Gr-zhVnLWPuWO35fc');
 
 function App() {
   const [selectedCrossing, setSelectedCrossing] = useState('Holland Tunnel');
-  const [selectedDateTime, setSelectedDateTime] = useState(add5Hours());
+  const [selectedDateTime, setSelectedDateTime] = useState(new Date());
   const [selectedInterval, setSelectedInterval] = useState('1'); // State for the interval dropdown
   const [chartData, setChartData] = useState({ westbound: [], eastbound: [] });
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +22,7 @@ function App() {
     setIsLoading(true);
   
     try {
-      const adjustedDateTime = new Date(selectedDateTimeRef.current.getTime() + (5 * 60 * 60 * 1000));
+      const adjustedDateTime = moment.tz(selectedDateTimeRef.current, 'America/New_York').utc().toDate();
   
       let query = supabase
         .from('crossing_times')
@@ -64,6 +65,7 @@ useEffect(() => {
 
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
+    // eslint-disable-next-line
 }, [selectedCrossing, selectedDateTime]);
 
   function add5Hours() {
@@ -79,20 +81,20 @@ useEffect(() => {
     // Helper function to transform data for a specific direction
     const formatDataForDirection = (directionData) => {
       return directionData.slice().reverse().map(item => ({
-        date: (selectedInterval === '1' ? new Date(item.time_stamp) : new Date(item.truncated_time)).toISOString().slice(0, 16), // Use 'date' for the x-axis
+        date: moment.tz((selectedInterval === '1' ? item.time_stamp : item.truncated_time), 'UTC').tz('America/New_York').format('YYYY-MM-DD h:mm A'), // Convert UTC to EST
         'Route Speed': item.route_speed,
         'Route Travel Time': item.route_travel_time
       }));
     };
-
+  
     const westboundData = data.filter(item => item.cardinal_direction === 'westbound');
     const eastboundData = data.filter(item => item.cardinal_direction === 'eastbound');
-
+  
     return {
       westbound: formatDataForDirection(westboundData),
       eastbound: formatDataForDirection(eastboundData)
     };
-  }
+  }  
 
   return (
     <MantineProvider>
