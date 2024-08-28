@@ -30,7 +30,7 @@ function App() {
         .eq('crossing_display_name', selectedCrossingRef.current)
         .lte('time_stamp', adjustedDateTime.toISOString())
         .order('time_stamp', { ascending: false })
-        .limit(100);
+        .limit(1000);
   
       const { data, error } = await query;
   
@@ -59,12 +59,29 @@ useEffect(() => {
 }, [selectedCrossing, selectedDateTime]);
 
 useEffect(() => {
-  fetchData(); // This will now use the updated refs
-    // Set up an interval to auto-refresh every 1 minute
-    const intervalId = setInterval(fetchData, 60000);
+  const handleRefresh = () => {
+    const currentTime = new Date();
+    currentTime.setSeconds(0, 0); // Set the time to the exact minute, zeroing out seconds and milliseconds
 
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
+    // Convert both times to strings for easy comparison
+    const formattedCurrentTime = moment.tz(currentTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
+
+    const formattedSelectedTime = moment.tz(selectedDateTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
+
+    // Update selectedDateTime only if the minute has actually changed
+    if (formattedCurrentTime !== formattedSelectedTime) {
+      setSelectedDateTime(currentTime); // Update state with the new time
+      fetchData(); // Call fetchData using the updated time
+    }
+  };
+
+  handleRefresh(); // Initial fetch
+
+  // Set up an interval to auto-refresh every 1 minute
+  const intervalId = setInterval(handleRefresh, 60000);
+
+  // Clean up the interval on component unmount
+  return () => clearInterval(intervalId);
     // eslint-disable-next-line
 }, [selectedCrossing, selectedDateTime]);
 
