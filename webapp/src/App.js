@@ -59,6 +59,11 @@ useEffect(() => {
 
 useEffect(() => {
   fetchData(); // This will now use the updated refs
+    // Set up an interval to auto-refresh every 1 minute
+    const intervalId = setInterval(fetchData, 60000);
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
 }, [selectedCrossing, selectedDateTime]);
 
   function add5Hours() {
