@@ -48,15 +48,17 @@ function App() {
   }
   
 
-
-
-  const selectedCrossingRef = useRef(selectedCrossing);
+const selectedCrossingRef = useRef(selectedCrossing);
 const selectedDateTimeRef = useRef(selectedDateTime);
 
 useEffect(() => {
   selectedCrossingRef.current = selectedCrossing;
   selectedDateTimeRef.current = selectedDateTime;
 }, [selectedCrossing, selectedDateTime]);
+
+useEffect(() => {
+  fetchData(); // Run fetchData on initial load
+}, []);
 
 useEffect(() => {
   const handleRefresh = () => {
