@@ -189,8 +189,12 @@ function App() {
                     xAxisProps={{
                       tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
                       angle: 0,
-                      minTickGap: 100
+                      minTickGap: 100,
+                      // tick: {
+                      //   ontSize: 12, // Set the desired font size
+                      // },
                     }}
+                    
                   >
                   </LineChart>
 
@@ -211,7 +215,10 @@ function App() {
                     xAxisProps={{
                       tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
                       angle: 0,
-                      minTickGap: 100
+                      minTickGap: 100,
+                      // tick: {
+                      //   ontSize: 12, // Set the desired font size
+                      // },
                     }}
                   >
                   </LineChart>
