@@ -61,34 +61,32 @@ function App() {
     fetchData(); // Run fetchData on initial load
   }, []);
 
+
+  const handleRefresh = () => {
+    const currentTime = new Date();
+    currentTime.setSeconds(0, 0); // Set time to the exact minute, zeroing out seconds and milliseconds
+  
+    const formattedCurrentTime = moment.tz(currentTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
+    const formattedSelectedTime = moment.tz(selectedDateTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
+  
+    if (formattedCurrentTime !== formattedSelectedTime) {
+      setSelectedDateTime(currentTime);
+      fetchData();
+    }
+  };
+  
   useEffect(() => {
-    const handleRefresh = () => {
-      const currentTime = new Date();
-      currentTime.setSeconds(0, 0); // Set the time to the exact minute, zeroing out seconds and milliseconds
-
-      // Convert both times to strings for easy comparison
-      const formattedCurrentTime = moment.tz(currentTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
-
-      const formattedSelectedTime = moment.tz(selectedDateTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
-
-      // Update selectedDateTime only if the minute has actually changed
-      if (formattedCurrentTime !== formattedSelectedTime) {
-        setSelectedDateTime(currentTime); // Update state with the new time
-        fetchData(); // Call fetchData using the updated time
-      }
-    };
-
     handleRefresh(); // Initial fetch
-
+  
     // Only set up an interval if auto-refresh is on
     if (isAutoRefreshOn) {
       const intervalId = setInterval(handleRefresh, 60000);
-
+  
       // Clear interval on cleanup
       return () => clearInterval(intervalId);
     }
-    // eslint-disable-next-line
   }, [isAutoRefreshOn, selectedCrossing, selectedDateTime]);
+
 
   // Function to format data for Mantine Charts
   function formatDataForMantineChart(data) {
@@ -154,7 +152,15 @@ function App() {
               <Switch
                 label="Auto-Refresh"
                 checked={isAutoRefreshOn}
-                onChange={(event) => setIsAutoRefreshOn(event.currentTarget.checked)}
+                onChange={(event) => {
+                  const isChecked = event.currentTarget.checked;
+                  setIsAutoRefreshOn(isChecked);
+                  
+                  // Trigger an immediate refresh when auto-refresh is turned on
+                  if (isChecked) {
+                    handleRefresh();
+                  }
+                }}
                 mt="md"
               />
 
