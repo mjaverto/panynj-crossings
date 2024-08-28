@@ -122,6 +122,9 @@ function App() {
                 data={[
                   { value: 'Holland Tunnel', label: 'Holland Tunnel' },
                   { value: 'Bayonne Bridge', label: 'Bayonne Bridge' },
+                  { value: 'George Washington Bridge', label: 'George Washington Bridge' },
+                  { value: 'Goethals Bridge', label: 'Goethals Bridge' },
+                  { value: 'Outerbridge Crossing', label: 'Outerbridge Crossing' },
                   // ... other crossings
                 ]}
                 value={selectedCrossing}
