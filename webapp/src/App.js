@@ -59,11 +59,11 @@ function App() {
 
   const handleRefresh = () => {
     const currentTime = new Date();
-    currentTime.setSeconds(0, 0); 
-  
+    currentTime.setSeconds(0, 0);
+
     const formattedCurrentTime = moment.tz(currentTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
     const formattedSelectedTime = moment.tz(selectedDateTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
-  
+
     if (formattedCurrentTime !== formattedSelectedTime) {
       setSelectedDateTime(currentTime);
       fetchData();
@@ -71,46 +71,47 @@ function App() {
   };
 
   useEffect(() => {
-    handleRefresh(); 
+    handleRefresh();
 
     if (isAutoRefreshOn) {
       const intervalId = setInterval(handleRefresh, 60000);
-  
+
       return () => clearInterval(intervalId);
     }
   }, [isAutoRefreshOn, selectedDateTime]);
 
   function formatDataForMantineChart(data) {
     const formattedData = {};
-  
+
     const crossings = ['Holland Tunnel', 'Lincoln Tunnel', 'Bayonne Bridge', 'George Washington Bridge', 'Goethals Bridge', 'Outerbridge Crossing'];
     crossings.forEach((crossing) => {
       const westboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'westbound');
       const eastboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'eastbound');
-  
+
       formattedData[crossing] = {
         westbound: westboundData
           .slice()
-          .reverse()  // Reverse order based on timestamp
+          .reverse()
           .map(item => ({
-            date: moment.tz((selectedInterval === '1' ? item.time_stamp : item.truncated_time), 'UTC').tz('America/New_York').format('YYYY-MM-DD h:mm A'),
+            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time).tz('America/New_York').format('YYYY-MM-DDTHH:mm:ss'), // Standard ISO format
             'Route Speed': item.route_speed,
             'Route Travel Time': item.route_travel_time
           })),
         eastbound: eastboundData
           .slice()
-          .reverse()  // Reverse order based on timestamp
+          .reverse()
           .map(item => ({
-            date: moment.tz((selectedInterval === '1' ? item.time_stamp : item.truncated_time), 'UTC').tz('America/New_York').format('YYYY-MM-DD h:mm A'),
+            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time).tz('America/New_York').format('YYYY-MM-DDTHH:mm:ss'), // Standard ISO format
             'Route Speed': item.route_speed,
             'Route Travel Time': item.route_travel_time
           }))
       };
+
     });
-  
+
     return formattedData;
   }
-  
+
 
   return (
     <MantineProvider>
@@ -146,14 +147,14 @@ function App() {
             </Grid.Col>
 
             <Grid.Col span={{ base: 12, md: 12, lg: 12 }}>
-              
-                <LoadingOverlay visible={isLoading} />
-                {!isLoading && Object.keys(chartData).map((crossing, index) => (
-                  <div key={index}>
-                    <Card withBorder shadow="sm" p="lg" mb={15}>
+
+              <LoadingOverlay visible={isLoading} />
+              {!isLoading && Object.keys(chartData).map((crossing, index) => (
+                <div key={index}>
+                  <Card withBorder shadow="sm" p="lg" mb={15}>
                     <Title order={3} align="center">{crossing}</Title>
                     <Grid gutter="md">
-                    
+
                       <Grid.Col span={{ base: 12, md: 6 }}>
                         <h4 align="center">Westbound</h4>
                         <LineChart
@@ -170,13 +171,13 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
+                            tickFormatter: (date) => moment(date).format('MM/DD HH:mma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
                         />
                       </Grid.Col>
-                      
+
                       <Grid.Col span={{ base: 12, md: 6 }}>
                         <h4 align="center">Eastbound</h4>
                         <LineChart
@@ -193,16 +194,16 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
+                            tickFormatter: (date) => moment(date).format('MM/DD HH:mma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
                         />
                       </Grid.Col>
                     </Grid>
-                    </Card>
-                  </div>
-                ))}
+                  </Card>
+                </div>
+              ))}
             </Grid.Col>
           </Grid>
         </Container>
