@@ -13,7 +13,7 @@ const supabase = createClient('https://jurzflavaojycfbqjyex.supabase.co', 'eyJhb
 
 function App() {
   const [selectedDateTime, setSelectedDateTime] = useState(new Date());
-  const [selectedInterval, setSelectedInterval] = useState('1');
+  const [selectedInterval] = useState('1');
   const [chartData, setChartData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(false);
