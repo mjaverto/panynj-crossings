@@ -83,7 +83,7 @@ function App() {
   function formatDataForMantineChart(data) {
     const formattedData = {};
   
-    const crossings = ['Holland Tunnel', 'Bayonne Bridge', 'George Washington Bridge', 'Goethals Bridge', 'Outerbridge Crossing'];
+    const crossings = ['Holland Tunnel', 'Lincoln Tunnel', 'Bayonne Bridge', 'George Washington Bridge', 'Goethals Bridge', 'Outerbridge Crossing'];
     crossings.forEach((crossing) => {
       const westboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'westbound');
       const eastboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'eastbound');
