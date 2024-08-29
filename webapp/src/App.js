@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Select, Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container } from '@mantine/core';
+import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/charts/styles.css';
@@ -12,10 +12,9 @@ import moment from 'moment-timezone';
 const supabase = createClient('https://jurzflavaojycfbqjyex.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1cnpmbGF2YW9qeWNmYnFqeWV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ2ODIxNzcsImV4cCI6MjA0MDI1ODE3N30.pzgMDzfizUDWa5pBrnNLklTKd2Gr-zhVnLWPuWO35fc');
 
 function App() {
-  const [selectedCrossing, setSelectedCrossing] = useState('Holland Tunnel');
   const [selectedDateTime, setSelectedDateTime] = useState(new Date());
-  const [selectedInterval, setSelectedInterval] = useState('1'); // State for the interval dropdown
-  const [chartData, setChartData] = useState({ westbound: [], eastbound: [] });
+  const [selectedInterval, setSelectedInterval] = useState('1');
+  const [chartData, setChartData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(false);
 
@@ -25,10 +24,10 @@ function App() {
     try {
       const adjustedDateTime = moment.tz(selectedDateTimeRef.current, 'America/New_York').utc().toDate();
 
+      // Fetch data for all crossings at once
       let query = supabase
         .from('crossing_times')
         .select('*')
-        .eq('crossing_display_name', selectedCrossingRef.current)
         .lte('time_stamp', adjustedDateTime.toISOString())
         .order('time_stamp', { ascending: false })
         .limit(1000);
@@ -48,23 +47,19 @@ function App() {
     }
   }
 
-
-  const selectedCrossingRef = useRef(selectedCrossing);
   const selectedDateTimeRef = useRef(selectedDateTime);
 
   useEffect(() => {
-    selectedCrossingRef.current = selectedCrossing;
     selectedDateTimeRef.current = selectedDateTime;
-  }, [selectedCrossing, selectedDateTime]);
+  }, [selectedDateTime]);
 
   useEffect(() => {
-    fetchData(); // Run fetchData on initial load
+    fetchData();
   }, []);
-
 
   const handleRefresh = () => {
     const currentTime = new Date();
-    currentTime.setSeconds(0, 0); // Set time to the exact minute, zeroing out seconds and milliseconds
+    currentTime.setSeconds(0, 0); 
   
     const formattedCurrentTime = moment.tz(currentTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
     const formattedSelectedTime = moment.tz(selectedDateTime, 'America/New_York').format('YYYY-MM-DD HH:mm');
@@ -74,162 +69,142 @@ function App() {
       fetchData();
     }
   };
-  
+
   useEffect(() => {
-    handleRefresh(); // Initial fetch
-  
-    // Only set up an interval if auto-refresh is on
+    handleRefresh(); 
+
     if (isAutoRefreshOn) {
       const intervalId = setInterval(handleRefresh, 60000);
   
-      // Clear interval on cleanup
       return () => clearInterval(intervalId);
     }
-  }, [isAutoRefreshOn, selectedCrossing, selectedDateTime]);
+  }, [isAutoRefreshOn, selectedDateTime]);
 
-
-  // Function to format data for Mantine Charts
   function formatDataForMantineChart(data) {
-    // Helper function to transform data for a specific direction
-    const formatDataForDirection = (directionData) => {
-      return directionData.slice().reverse().map(item => ({
-        date: moment.tz((selectedInterval === '1' ? item.time_stamp : item.truncated_time), 'UTC').tz('America/New_York').format('YYYY-MM-DD h:mm A'), // Convert UTC to EST
-        'Route Speed': item.route_speed,
-        'Route Travel Time': item.route_travel_time
-      }));
-    };
-
-    const westboundData = data.filter(item => item.cardinal_direction === 'westbound');
-    const eastboundData = data.filter(item => item.cardinal_direction === 'eastbound');
-
-    return {
-      westbound: formatDataForDirection(westboundData),
-      eastbound: formatDataForDirection(eastboundData)
-    };
+    const formattedData = {};
+  
+    const crossings = ['Holland Tunnel', 'Bayonne Bridge', 'George Washington Bridge', 'Goethals Bridge', 'Outerbridge Crossing'];
+    crossings.forEach((crossing) => {
+      const westboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'westbound');
+      const eastboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'eastbound');
+  
+      formattedData[crossing] = {
+        westbound: westboundData
+          .slice()
+          .reverse()  // Reverse order based on timestamp
+          .map(item => ({
+            date: moment.tz((selectedInterval === '1' ? item.time_stamp : item.truncated_time), 'UTC').tz('America/New_York').format('YYYY-MM-DD h:mm A'),
+            'Route Speed': item.route_speed,
+            'Route Travel Time': item.route_travel_time
+          })),
+        eastbound: eastboundData
+          .slice()
+          .reverse()  // Reverse order based on timestamp
+          .map(item => ({
+            date: moment.tz((selectedInterval === '1' ? item.time_stamp : item.truncated_time), 'UTC').tz('America/New_York').format('YYYY-MM-DD h:mm A'),
+            'Route Speed': item.route_speed,
+            'Route Travel Time': item.route_travel_time
+          }))
+      };
+    });
+  
+    return formattedData;
   }
+  
 
   return (
     <MantineProvider>
       <div>
-        <Title order={2} align="center" mb="xl">Crossing Data Visualization</Title>
+        <Title order={2} align="center" mb="xl">NYC Crossings History</Title>
         <Container size="xxl">
-        <Grid gutter="lg">
-          <Grid.Col span={{ base: 12, md: 12, lg: 3 }}>
-            <Card withBorder shadow="sm" p="lg">
-              <Select
-                label="Select Crossing"
-                placeholder="Select a crossing"
-                data={[
-                  { value: 'Holland Tunnel', label: 'Holland Tunnel' },
-                  { value: 'Bayonne Bridge', label: 'Bayonne Bridge' },
-                  { value: 'George Washington Bridge', label: 'George Washington Bridge' },
-                  { value: 'Goethals Bridge', label: 'Goethals Bridge' },
-                  { value: 'Outerbridge Crossing', label: 'Outerbridge Crossing' },
-                  // ... other crossings
-                ]}
-                value={selectedCrossing}
-                onChange={(value) => {
-                  if (value) { // Ensure value is not null or empty
-                    setSelectedCrossing(value);
-                  }
-                }}
-              />
+          <Grid gutter="lg">
+            <Grid.Col span={{ base: 12, md: 12, lg: 12 }}>
+              <Card withBorder shadow="sm" p="lg">
+                <DateTimePicker
+                  label="Select Date and Time"
+                  placeholder="Select date and time"
+                  value={selectedDateTime}
+                  valueFormat="MMM DD YYYY hh:mm A"
+                  onChange={(value) => {
+                    setSelectedDateTime(value);
+                  }}
+                  mt="md"
+                />
+                <Switch
+                  label="Auto-Refresh"
+                  checked={isAutoRefreshOn}
+                  onChange={(event) => {
+                    const isChecked = event.currentTarget.checked;
+                    setIsAutoRefreshOn(isChecked);
+                    if (isChecked) {
+                      handleRefresh();
+                    }
+                  }}
+                  mt="md"
+                />
+              </Card>
+            </Grid.Col>
 
-              <DateTimePicker
-                label="Select Date and Time"
-                placeholder="Select date and time"
-                value={selectedDateTime}
-                valueFormat="MMM DD YYYY hh:mm A"
-                onChange={(value) => {
-                  setSelectedDateTime(value);
-                }}
-                mt="md"
-              />
-              <Select
-                label="Interval in Minutes"
-                value={selectedInterval} // Connect to state
-                onChange={setSelectedInterval} // Update state on change
-                data={['1', '5', '15', '60']}
-                disabled="true"
-              />
-              <Switch
-                label="Auto-Refresh"
-                checked={isAutoRefreshOn}
-                onChange={(event) => {
-                  const isChecked = event.currentTarget.checked;
-                  setIsAutoRefreshOn(isChecked);
-                  // Trigger an immediate refresh when auto-refresh is turned on
-                  if (isChecked) {
-                    handleRefresh();
-                  }
-                }}
-                mt="md"
-              />
-
-            </Card>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, md: 12, lg: 9 }}>
-            <Card withBorder shadow="sm" p="lg">
-              <LoadingOverlay visible={isLoading} />
-              {!isLoading && (
-                <>
-                  <h2>Westbound</h2>
-                  <LineChart
-                    // ... other props
-                    data={chartData.westbound}
-                    h={300}
-                    dataKey="date"
-                    strokeWidth={5}
-                    curveType="natural"
-                    dotProps={{ r: 0 }}
-                    activeDotProps={{ r: 8 }}
-                    withLegend
-                    series={[
-                      { name: 'Route Speed', color: 'green.6' },
-                      { name: 'Route Travel Time', color: 'red.6' },
-                    ]}
-                    xAxisProps={{
-                      tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
-                      angle: 0,
-                      minTickGap: 100,
-                      // tick: {
-                      //   ontSize: 12, // Set the desired font size
-                      // },
-                    }}
+            <Grid.Col span={{ base: 12, md: 12, lg: 12 }}>
+              
+                <LoadingOverlay visible={isLoading} />
+                {!isLoading && Object.keys(chartData).map((crossing, index) => (
+                  <div key={index}>
+                    <Card withBorder shadow="sm" p="lg" mb={15}>
+                    <Title order={3} align="center">{crossing}</Title>
+                    <Grid gutter="md">
                     
-                  >
-                  </LineChart>
-
-                  <h2>Eastbound</h2>
-                  <LineChart
-                    data={chartData.eastbound}
-                    h={300}
-                    dataKey="date"
-                    strokeWidth={5}
-                    curveType="natural"
-                    dotProps={{ r: 0 }}
-                    activeDotProps={{ r: 8 }}
-                    withLegend
-                    series={[
-                      { name: 'Route Speed', color: 'green.6' },
-                      { name: 'Route Travel Time', color: 'red.6' },
-                    ]}
-                    xAxisProps={{
-                      tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
-                      angle: 0,
-                      minTickGap: 100,
-                      // tick: {
-                      //   ontSize: 12, // Set the desired font size
-                      // },
-                    }}
-                  >
-                  </LineChart>
-                </>
-              )}
-            </Card>
-          </Grid.Col>
-        </Grid>
+                      <Grid.Col span={{ base: 12, md: 6 }}>
+                        <h4 align="center">Westbound</h4>
+                        <LineChart
+                          data={chartData[crossing].westbound}
+                          h={300}
+                          dataKey="date"
+                          strokeWidth={5}
+                          curveType="natural"
+                          dotProps={{ r: 0 }}
+                          activeDotProps={{ r: 8 }}
+                          withLegend
+                          series={[
+                            { name: 'Route Speed', color: 'green.6' },
+                            { name: 'Route Travel Time', color: 'red.6' },
+                          ]}
+                          xAxisProps={{
+                            tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
+                            angle: 0,
+                            minTickGap: 100,
+                          }}
+                        />
+                      </Grid.Col>
+                      
+                      <Grid.Col span={{ base: 12, md: 6 }}>
+                        <h4 align="center">Eastbound</h4>
+                        <LineChart
+                          data={chartData[crossing].eastbound}
+                          h={300}
+                          dataKey="date"
+                          strokeWidth={5}
+                          curveType="natural"
+                          dotProps={{ r: 0 }}
+                          activeDotProps={{ r: 8 }}
+                          withLegend
+                          series={[
+                            { name: 'Route Speed', color: 'green.6' },
+                            { name: 'Route Travel Time', color: 'red.6' },
+                          ]}
+                          xAxisProps={{
+                            tickFormatter: (date) => moment(date).format('MM/DD HH:mm'), 
+                            angle: 0,
+                            minTickGap: 100,
+                          }}
+                        />
+                      </Grid.Col>
+                    </Grid>
+                    </Card>
+                  </div>
+                ))}
+            </Grid.Col>
+          </Grid>
         </Container>
       </div>
     </MantineProvider>
