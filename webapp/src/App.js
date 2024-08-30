@@ -93,7 +93,10 @@ function App() {
           .slice()
           .reverse()
           .map(item => ({
-            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time).tz('America/New_York').format('YYYY-MM-DDTHH:mm:ss'), // Standard ISO format
+            // Convert to ISO 8601 format, then format to 12-hour time
+            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
+              .tz('America/New_York')
+              .format('YYYY-MM-DD hh:mm A'), // 12-hour format with AM/PM
             'Route Speed': item.route_speed,
             'Route Travel Time': item.route_travel_time
           })),
@@ -101,7 +104,10 @@ function App() {
           .slice()
           .reverse()
           .map(item => ({
-            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time).tz('America/New_York').format('YYYY-MM-DDTHH:mm:ss'), // Standard ISO format
+            // Convert to ISO 8601 format, then format to 12-hour time
+            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
+              .tz('America/New_York')
+              .format('YYYY-MM-DD hh:mm A'), // 12-hour format with AM/PM
             'Route Speed': item.route_speed,
             'Route Travel Time': item.route_travel_time
           }))
@@ -171,7 +177,7 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date).format('MM/DD HH:mma'),
+                            tickFormatter: (date) => moment(date).format('MM/DD hh:mma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
@@ -194,7 +200,7 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date).format('MM/DD HH:mma'),
+                            tickFormatter: (date) => moment(date).format('MM/DD hh:mma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
