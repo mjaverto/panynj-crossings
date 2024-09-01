@@ -22,11 +22,11 @@ function App() {
     setIsLoading(true);
 
     try {
-      const adjustedDateTime = moment.tz(selectedDateTimeRef.current, 'America/New_York').utc().toDate();
+      const adjustedDateTime = moment(selectedDateTimeRef.current).tz('America/New_York').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
 
       // Fetch data for all crossings at once
       const { data, error } = await supabase.rpc('get_crossing_data', {
-        in_time_stamp: adjustedDateTime.toISOString(),  // Pass the time_stamp filter
+        in_time_stamp: adjustedDateTime,  // Pass the time_stamp filter
         in_order_direction: 'DESC',  // Set the order direction (DESC or ASC)
         in_limit: 1000,  // Set the limit
       });
@@ -80,26 +80,21 @@ function App() {
   function formatDataForMantineChart(data) {
     const formattedData = {};
   
-    // List of crossings to display
     const crossings = [
       'Holland Tunnel',
       'Lincoln Tunnel',
       'Bayonne Bridge',
-      'George Washington Bridge', // Entry without specific modifier
+      'George Washington Bridge',
       'Goethals Bridge',
       'Outerbridge Crossing'
     ];
   
-    // Iterate through all crossings
     crossings.forEach((crossing) => {
-      // Get all data for the specific crossing
       const crossingData = data.filter(item => item.crossing_display_name === crossing);
   
-      // Check for modifiers (like "Upper" or "Lower") and process separately
-      const modifiers = [...new Set(crossingData.map(item => item.facility_modifier).filter(Boolean))]; // Get unique non-null modifiers
+      const modifiers = [...new Set(crossingData.map(item => item.facility_modifier).filter(Boolean))];
   
       if (modifiers.length > 0) {
-        // If there are modifiers, process each modifier separately
         modifiers.forEach((modifier) => {
           const modifiedCrossingName = `${crossing} - ${modifier}`;
           
@@ -136,7 +131,6 @@ function App() {
           };
         });
       } else {
-        // If there are no modifiers, process normally
         const westboundData = crossingData.filter(
           (item) => item.cardinal_direction === 'westbound'
         );
@@ -173,8 +167,6 @@ function App() {
   
     return formattedData;
   }
-  
-
 
   return (
     <MantineProvider>
@@ -234,7 +226,7 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date).format('MM/DD hh:mma'),
+                            tickFormatter: (date) => moment(date, 'YYYY-MM-DD hh:mm A').format('M/D/YY h:ma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
@@ -257,7 +249,7 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date).format('MM/DD hh:mma'),
+                            tickFormatter: (date) => moment(date, 'YYYY-MM-DD hh:mm A').format('M/D/YY h:ma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
