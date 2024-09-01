@@ -28,7 +28,7 @@ function App() {
       const { data, error } = await supabase.rpc('get_crossing_data', {
         in_time_stamp: adjustedDateTime,  // Pass the time_stamp filter
         in_order_direction: 'DESC',  // Set the order direction (DESC or ASC)
-        in_limit: 1000,  // Set the limit
+        in_limit: 10000,  // Set the limit
       });
 
       if (error) {
@@ -226,7 +226,7 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date, 'YYYY-MM-DD hh:mm A').format('M/D/YY h:ma'),
+                            tickFormatter: (date) => moment(date, 'YYYY-MM-DD hh:mm A').format('M/D/YY h:mma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
@@ -249,7 +249,7 @@ function App() {
                             { name: 'Route Travel Time', color: 'red.6' },
                           ]}
                           xAxisProps={{
-                            tickFormatter: (date) => moment(date, 'YYYY-MM-DD hh:mm A').format('M/D/YY h:ma'),
+                            tickFormatter: (date) => moment(date, 'YYYY-MM-DD hh:mm A').format('M/D/YY h:mma'),
                             angle: 0,
                             minTickGap: 100,
                           }}
