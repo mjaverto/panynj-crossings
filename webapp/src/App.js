@@ -28,7 +28,7 @@ function App() {
       const { data, error } = await supabase.rpc('get_crossing_data', {
         in_time_stamp: adjustedDateTime.toISOString(),  // Pass the time_stamp filter
         in_order_direction: 'DESC',  // Set the order direction (DESC or ASC)
-        in_limit: 1000  // Set the limit
+        in_limit: 1000,  // Set the limit
       });
 
       if (error) {
