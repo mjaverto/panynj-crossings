@@ -25,14 +25,11 @@ function App() {
       const adjustedDateTime = moment.tz(selectedDateTimeRef.current, 'America/New_York').utc().toDate();
 
       // Fetch data for all crossings at once
-      let query = supabase
-        .from('crossing_times')
-        .select('*')
-        .lte('time_stamp', adjustedDateTime.toISOString())
-        .order('time_stamp', { ascending: false })
-        .limit(1000);
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.rpc('get_crossing_data', {
+        in_time_stamp: adjustedDateTime.toISOString(),  // Pass the time_stamp filter
+        in_order_direction: 'DESC',  // Set the order direction (DESC or ASC)
+        in_limit: 1000  // Set the limit
+      });
 
       if (error) {
         console.error('Error fetching data from Supabase:', error);
@@ -82,41 +79,101 @@ function App() {
 
   function formatDataForMantineChart(data) {
     const formattedData = {};
-
-    const crossings = ['Holland Tunnel', 'Lincoln Tunnel', 'Bayonne Bridge', 'George Washington Bridge', 'Goethals Bridge', 'Outerbridge Crossing'];
+  
+    // List of crossings to display
+    const crossings = [
+      'Holland Tunnel',
+      'Lincoln Tunnel',
+      'Bayonne Bridge',
+      'George Washington Bridge', // Entry without specific modifier
+      'Goethals Bridge',
+      'Outerbridge Crossing'
+    ];
+  
+    // Iterate through all crossings
     crossings.forEach((crossing) => {
-      const westboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'westbound');
-      const eastboundData = data.filter(item => item.crossing_display_name === crossing && item.cardinal_direction === 'eastbound');
-
-      formattedData[crossing] = {
-        westbound: westboundData
-          .slice()
-          .reverse()
-          .map(item => ({
-            // Convert to ISO 8601 format, then format to 12-hour time
-            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
-              .tz('America/New_York')
-              .format('YYYY-MM-DD hh:mm A'), // 12-hour format with AM/PM
-            'Route Speed': item.route_speed,
-            'Route Travel Time': item.route_travel_time
-          })),
-        eastbound: eastboundData
-          .slice()
-          .reverse()
-          .map(item => ({
-            // Convert to ISO 8601 format, then format to 12-hour time
-            date: moment.utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
-              .tz('America/New_York')
-              .format('YYYY-MM-DD hh:mm A'), // 12-hour format with AM/PM
-            'Route Speed': item.route_speed,
-            'Route Travel Time': item.route_travel_time
-          }))
-      };
-
+      // Get all data for the specific crossing
+      const crossingData = data.filter(item => item.crossing_display_name === crossing);
+  
+      // Check for modifiers (like "Upper" or "Lower") and process separately
+      const modifiers = [...new Set(crossingData.map(item => item.facility_modifier).filter(Boolean))]; // Get unique non-null modifiers
+  
+      if (modifiers.length > 0) {
+        // If there are modifiers, process each modifier separately
+        modifiers.forEach((modifier) => {
+          const modifiedCrossingName = `${crossing} - ${modifier}`;
+          
+          const westboundData = crossingData.filter(
+            (item) => item.facility_modifier === modifier && item.cardinal_direction === 'westbound'
+          );
+          const eastboundData = crossingData.filter(
+            (item) => item.facility_modifier === modifier && item.cardinal_direction === 'eastbound'
+          );
+  
+          formattedData[modifiedCrossingName] = {
+            westbound: westboundData
+              .slice()
+              .reverse()
+              .map((item) => ({
+                date: moment
+                  .utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
+                  .tz('America/New_York')
+                  .format('YYYY-MM-DD hh:mm A'),
+                'Route Speed': item.route_speed,
+                'Route Travel Time': item.route_travel_time,
+              })),
+            eastbound: eastboundData
+              .slice()
+              .reverse()
+              .map((item) => ({
+                date: moment
+                  .utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
+                  .tz('America/New_York')
+                  .format('YYYY-MM-DD hh:mm A'),
+                'Route Speed': item.route_speed,
+                'Route Travel Time': item.route_travel_time,
+              })),
+          };
+        });
+      } else {
+        // If there are no modifiers, process normally
+        const westboundData = crossingData.filter(
+          (item) => item.cardinal_direction === 'westbound'
+        );
+        const eastboundData = crossingData.filter(
+          (item) => item.cardinal_direction === 'eastbound'
+        );
+  
+        formattedData[crossing] = {
+          westbound: westboundData
+            .slice()
+            .reverse()
+            .map((item) => ({
+              date: moment
+                .utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
+                .tz('America/New_York')
+                .format('YYYY-MM-DD hh:mm A'),
+              'Route Speed': item.route_speed,
+              'Route Travel Time': item.route_travel_time,
+            })),
+          eastbound: eastboundData
+            .slice()
+            .reverse()
+            .map((item) => ({
+              date: moment
+                .utc(selectedInterval === '1' ? item.time_stamp : item.truncated_time)
+                .tz('America/New_York')
+                .format('YYYY-MM-DD hh:mm A'),
+              'Route Speed': item.route_speed,
+              'Route Travel Time': item.route_travel_time,
+            })),
+        };
+      }
     });
-
+  
     return formattedData;
   }
+  
 
 
   return (
