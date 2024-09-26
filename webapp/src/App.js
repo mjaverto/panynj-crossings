@@ -68,12 +68,12 @@ function App() {
   };
 
   useEffect(() => {
-    handleRefresh();
-
     if (isAutoRefreshOn) {
+      handleRefresh();
       const intervalId = setInterval(handleRefresh, 60000);
-
       return () => clearInterval(intervalId);
+    }else { 
+      fetchData();
     }
   }, [isAutoRefreshOn, selectedDateTime]);
 
@@ -183,6 +183,7 @@ function App() {
                   valueFormat="MMM DD YYYY hh:mm A"
                   onChange={(value) => {
                     setSelectedDateTime(value);
+                    setIsAutoRefreshOn(false);
                   }}
                   mt="md"
                 />
