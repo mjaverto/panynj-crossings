@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Text, Tooltip } from '@mantine/core';
+import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Tooltip } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/charts/styles.css';
@@ -19,7 +19,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(false);
   const [selectedCrossing, setSelectedCrossing] = useState('Holland Tunnel');
-  const [crossings, setCrossings] = useState([]);
 
   async function fetchData(crossing) {
     setIsLoading(true);
@@ -52,28 +51,6 @@ function App() {
     selectedDateTimeRef.current = selectedDateTime;
   }, [selectedDateTime]);
 
-  useEffect(() => {
-    const fetchCrossings = async () => {
-      const { data, error } = await supabase
-        .from('facilities')
-        .select('crossing_display_name')
-        .order('crossing_display_name');
-
-      if (error) {
-        console.error('Error fetching crossings:', error);
-      } else {
-        const crossingNames = data.map(item => item.crossing_display_name);
-        setCrossings(crossingNames);
-        // No need to set selectedCrossing here as it's already set to 'Holland Tunnel'
-      }
-    };
-
-    fetchCrossings();
-  }, []);
-
-  useEffect(() => {
-    fetchData(selectedCrossing);
-  }, [selectedCrossing, selectedDateTime]);
 
   useEffect(() => {
     if (isAutoRefreshOn) {
@@ -81,8 +58,9 @@ function App() {
       const intervalId = setInterval(handleRefresh, 60000);
       return () => clearInterval(intervalId);
     } else {
-      fetchData();
+      fetchData(selectedCrossing);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAutoRefreshOn, selectedDateTime]);
 
   const handleRefresh = () => {
