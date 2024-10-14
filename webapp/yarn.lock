@@ -1775,15 +1775,15 @@
   resolved "https://registry.npmjs.org/@leichtgewicht/ip-codec/-/ip-codec-2.0.5.tgz"
   integrity sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==
 
-"@mantine/charts@^7.12.1":
-  version "7.12.1"
-  resolved "https://registry.npmjs.org/@mantine/charts/-/charts-7.12.1.tgz"
-  integrity sha512-ugil5NbWf0kXAoF8R5KvZZSiC7FGqQJsLmWMF2fcsBm5FETXI5a5/s5nmT7ZWJHCW4IKM/xX43QLO0i2ZVjsog==
+"@mantine/charts@^7.13.1":
+  version "7.13.2"
+  resolved "https://registry.npmjs.org/@mantine/charts/-/charts-7.13.2.tgz"
+  integrity sha512-rfaf45F58Cx5k7X9qN5yV2ZhVFAIB8i+1S/DvNE3uUflGmrevHuuNbNDDbYtQOw8ObL959rtSWOyL1SmC11D0A==
 
-"@mantine/core@^7.12.1", "@mantine/core@7.12.1":
-  version "7.12.1"
-  resolved "https://registry.npmjs.org/@mantine/core/-/core-7.12.1.tgz"
-  integrity sha512-PXKIDaT1fpNB77dPQIcdFGM2NRnfmsJSVx3uuBccngBQWMIWI0wPyiO1Y26DK4LQrbrypeb+TS+Zxpgx6RoiCA==
+"@mantine/core@^7.13.1", "@mantine/core@7.13.2":
+  version "7.13.2"
+  resolved "https://registry.npmjs.org/@mantine/core/-/core-7.13.2.tgz"
+  integrity sha512-nD8oKIal+KdthqF074+ZG21035QBEAKso2zK9D6zWxRTLVCjLCNSc5JSXrXLrdBTnvPQGY26yunX4+MEPlmrHg==
   dependencies:
     "@floating-ui/react" "^0.26.9"
     clsx "^2.1.1"
@@ -1792,17 +1792,17 @@
     react-textarea-autosize "8.5.3"
     type-fest "^4.12.0"
 
-"@mantine/dates@^7.12.1":
-  version "7.12.1"
-  resolved "https://registry.npmjs.org/@mantine/dates/-/dates-7.12.1.tgz"
-  integrity sha512-+Dg5ZGoYPWYRWPY7HagLeW36ayVjKQIkTpdNvgGDwh5YpaFy5cHd6LK6USKUshTsRPuzM3oUKwXIBK8hsigMyA==
+"@mantine/dates@^7.13.1":
+  version "7.13.2"
+  resolved "https://registry.npmjs.org/@mantine/dates/-/dates-7.13.2.tgz"
+  integrity sha512-FSLGTM5s47mmHnIudRxrMXjE1EO56Qp01nATa9OwqVgVYVxxJ5xvS1ys5yxSGSE1jQk+3kyYQXHyLFcqbFhIVA==
   dependencies:
     clsx "^2.1.1"
 
-"@mantine/hooks@^7.12.1", "@mantine/hooks@7.12.1":
-  version "7.12.1"
-  resolved "https://registry.npmjs.org/@mantine/hooks/-/hooks-7.12.1.tgz"
-  integrity sha512-YPA3qiMHJkWID5+YzakBaLvjHtX3Fg3PdPY49iIb/CaWM9+lrJ+77TOVS7bsY7ZTBHXUfzft1/6Woqt3xSuweA==
+"@mantine/hooks@^7.13.1", "@mantine/hooks@7.13.2":
+  version "7.13.2"
+  resolved "https://registry.npmjs.org/@mantine/hooks/-/hooks-7.13.2.tgz"
+  integrity sha512-NKfGl2sKZw6zF//AfAFJrVDftjg7DKCn0h8rwJBIZCKi9axhwlV0Mvlqe2dep8QuM7O/uLLJSymSKIv1gaxIJg==
 
 "@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1":
   version "5.1.1-v1"
