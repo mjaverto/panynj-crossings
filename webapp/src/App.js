@@ -60,8 +60,7 @@ function App() {
     } else {
       fetchData(selectedCrossing);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAutoRefreshOn, selectedDateTime]);
+  }, [isAutoRefreshOn, selectedDateTime, selectedCrossing]);
 
   const handleRefresh = () => {
     const currentTime = new Date();
@@ -72,8 +71,8 @@ function App() {
 
     if (formattedCurrentTime !== formattedSelectedTime) {
       setSelectedDateTime(currentTime);
-      fetchData(selectedCrossing);
     }
+    fetchData(selectedCrossing);
   };
 
   function formatDataForMantineChart(data) {
