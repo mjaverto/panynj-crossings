@@ -60,6 +60,7 @@ function App() {
     } else {
       fetchData(selectedCrossing);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAutoRefreshOn, selectedDateTime, selectedCrossing]);
 
   const handleRefresh = () => {
