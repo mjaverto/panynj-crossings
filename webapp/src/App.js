@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Text, useMantineTheme } from '@mantine/core';
+import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Text } from '@mantine/core';
 import { IconBuildingBridge } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import '@mantine/core/styles.css';
@@ -60,7 +60,6 @@ function AppContent({
   isControlsVisible, setIsControlsVisible,
   isMobile
 }) {
-  const theme = useMantineTheme();
   
   // Decide how to interpret the timeRange selection into actual start/end timestamps
   function calculateTimeRange() {
@@ -77,7 +76,7 @@ function AppContent({
     // Handle dynamic duration formats first
     const durationMatch = timeRange.match(/^(\d+)([hdwy])$/i);
     if (durationMatch) {
-      const [_, amount, unit] = durationMatch;
+      const [, amount, unit] = durationMatch;
       const unitMapping = { h: 'hours', d: 'days', w: 'weeks', y: 'years' };
       startTime.subtract(amount, unitMapping[unit.toLowerCase()]);
       return { startTime, endTime };
