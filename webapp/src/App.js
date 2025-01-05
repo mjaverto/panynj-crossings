@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Tooltip } from '@mantine/core';
+import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Collapse, Button, Text } from '@mantine/core';
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { useMediaQuery } from '@mantine/hooks';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/charts/styles.css';
@@ -24,6 +26,9 @@ function App() {
 
   const [customTimeRange, setCustomTimeRange] = useState(null);
 
+  const [isControlsVisible, setIsControlsVisible] = useState(true);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
   // Decide how to interpret the timeRange selection into actual start/end timestamps
   function calculateTimeRange() {
     if (timeRange === 'custom' && customTimeRange) {
@@ -35,6 +40,17 @@ function App() {
 
     const endTime = moment().tz('America/New_York');
     let startTime = endTime.clone();
+
+    // Handle dynamic duration formats first
+    const durationMatch = timeRange.match(/^(\d+)([hdwy])$/i);
+    if (durationMatch) {
+      const [_, amount, unit] = durationMatch;
+      const unitMapping = { h: 'hours', d: 'days', w: 'weeks', y: 'years' };
+      startTime.subtract(amount, unitMapping[unit.toLowerCase()]);
+      return { startTime, endTime };
+    }
+
+    // Handle predefined cases
     switch (timeRange) {
       case '1h':
         startTime.subtract(1, 'hours');
@@ -65,6 +81,15 @@ function App() {
         break;
       case '90d':
         startTime.subtract(90, 'days');
+        break;
+      case '1y':
+        startTime.subtract(1, 'years');
+        break;
+      case '2y':
+        startTime.subtract(2, 'years');
+        break;
+      case '5y':
+        startTime.subtract(5, 'years');
         break;
       default:
         startTime.subtract(3, 'days');
@@ -167,70 +192,106 @@ function App() {
     }
   }, [isAutoRefreshOn, timeRange, granularity, selectedCrossing]);
 
+  const controlsContent = (
+    <>
+      <Grid align="flex-start">
+        <Grid.Col span={isMobile ? 12 : 4}>
+          <Select
+            label="Select Crossing"
+            placeholder="All or a specific crossing"
+            data={[
+              { value: 'All', label: 'All Crossings' },
+              { value: 'Holland Tunnel', label: 'Holland Tunnel' },
+              { value: 'Lincoln Tunnel', label: 'Lincoln Tunnel' },
+              { value: 'Bayonne Bridge', label: 'Bayonne Bridge' },
+              { value: 'George Washington Bridge', label: 'George Washington Bridge' },
+              { value: 'Goethals Bridge', label: 'Goethals Bridge' },
+              { value: 'Outerbridge Crossing', label: 'Outerbridge Crossing' }
+            ]}
+            value={selectedCrossing}
+            onChange={(value) => setSelectedCrossing(value)}
+          />
+        </Grid.Col>
+
+        <Grid.Col span={isMobile ? 12 : 4}>
+          <TimeRangeInput 
+            value={timeRange}
+            onChange={({ startTime, endTime, displayValue }) => {
+              // Check if it matches the duration pattern (e.g., 1h, 6d, 2w, etc.)
+              const isDurationFormat = /^\d+[hdwy]$/i.test(displayValue);
+              if (isDurationFormat || suggestions[0].items.includes(displayValue)) {
+                setTimeRange(displayValue);
+                setCustomTimeRange(null);
+              } else {
+                setTimeRange('custom');
+                setCustomTimeRange({
+                  startTime: moment(startTime),
+                  endTime: moment(endTime)
+                });
+              }
+            }}
+          />
+        </Grid.Col>
+
+        <Grid.Col span={isMobile ? 12 : 3}>
+          <Select
+            label="Granularity"
+            data={[
+              { value: '1 minute', label: '1 minute' },
+              { value: '5 minutes', label: '5 minutes' },
+              { value: '15 minutes', label: '15 minutes' },
+              { value: '30 minutes', label: '30 minutes' },
+              { value: '1 hour', label: '1 hour' },
+              { value: '6 hours', label: '6 hours' },
+              { value: '12 hours', label: '12 hours' },
+              { value: '1 day', label: '1 day' },
+              { value: '1 week', label: '1 week' },
+            ]}
+            value={granularity}
+            onChange={(val) => setGranularity(val)}
+          />
+        </Grid.Col>
+
+        <Grid.Col span={isMobile ? 12 : 1} style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'flex-start',
+          paddingTop: '28px'  // This matches Mantine's input label spacing
+        }}>
+          <Text size="sm" fw={500} mb={3}>Auto-Refresh</Text>
+          <Switch
+            checked={isAutoRefreshOn}
+            onChange={(event) => setIsAutoRefreshOn(event.currentTarget.checked)}
+            label=""
+          />
+        </Grid.Col>
+      </Grid>
+    </>
+  );
+
   return (
     <MantineProvider>
       <div>
         <Title order={2} align="center">NYC Crossings History</Title>
         <Container size="xl">
-
           <Card withBorder shadow="sm" p="lg">
-
-            <Switch
-              label="Auto-Refresh"
-              checked={isAutoRefreshOn}
-              onChange={(event) => setIsAutoRefreshOn(event.currentTarget.checked)}
-              mt="md"
-            />
-
-            <Select
-              label="Select Crossing"
-              placeholder="All or a specific crossing"
-              data={[
-                { value: 'All', label: 'All Crossings' },
-                { value: 'Holland Tunnel', label: 'Holland Tunnel' },
-                { value: 'Lincoln Tunnel', label: 'Lincoln Tunnel' },
-                // etc.
-              ]}
-              value={selectedCrossing}
-              onChange={(value) => setSelectedCrossing(value)}
-              mt="md"
-            />
-
-            {/* New “time range” control, similar to AWS CloudWatch */}
-            <TimeRangeInput 
-              value={timeRange}
-              onChange={({ startTime, endTime, displayValue }) => {
-                if (suggestions.includes(displayValue)) {
-                  // If it's one of our predefined values (like '3d', '1w', etc)
-                  setTimeRange(displayValue);
-                  setCustomTimeRange(null);
-                } else {
-                  // If it's a custom time range
-                  setTimeRange('custom');
-                  setCustomTimeRange({ startTime, endTime });
-                }
-              }}
-              mt="md"
-            />
-
-            {/* New “granularity” control */}
-            <Select
-              label="Granularity"
-              data={[
-                { value: '1 minute', label: '1 minute' },
-                { value: '5 minutes', label: '5 minutes' },
-                { value: '15 minutes', label: '15 minutes' },
-                { value: '30 minutes', label: '30 minutes' },
-                { value: '1 hour', label: '1 hour' },
-                { value: '6 hours', label: '6 hours' },
-                { value: '12 hours', label: '12 hours' },
-                { value: '1 day', label: '1 day' },
-                { value: '1 week', label: '1 week' },
-              ]}
-              value={granularity}
-              onChange={(val) => setGranularity(val)}
-              mt="md"
-            />
+            {isMobile ? (
+              <>
+                <Button 
+                  variant="subtle"
+                  fullWidth
+                  onClick={() => setIsControlsVisible(!isControlsVisible)}
+                  rightSection={isControlsVisible ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                >
+                  Controls
+                </Button>
+                <Collapse in={isControlsVisible}>
+                  {controlsContent}
+                </Collapse>
+              </>
+            ) : (
+              controlsContent
+            )}
           </Card>
 
           <LoadingOverlay visible={isLoading} />

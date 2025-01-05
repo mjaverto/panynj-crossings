@@ -1,88 +1,45 @@
 import { useState, useEffect } from 'react';
-import { Combobox, TextInput, useCombobox } from '@mantine/core';
+import { Combobox, TextInput, useCombobox, Text, Box } from '@mantine/core';
 import * as chrono from 'chrono-node';
 import moment from 'moment-timezone';
 
 export const suggestions = [
-  '1h', '3h', '12h', '1d', '3d', '1w', '2w', '30d', '60d', '90d',
-  '45m', '12 hours', '10d', '2 weeks',
-  'last month', 'yesterday', 'today',
-  'Jan 1', 'Jan 1 - Jan 2', '1/1',
-  '1/1 - 1/2', '2:00 pm - 8:00 pm',
-  'last year', 'this year'
+  { group: 'Duration', items: ['1h', '3h', '12h', '1d', '3d', '1w', '2w', '30d', '60d', '90d', '1y', '2y', '5y'] }
 ];
 
 export function TimeRangeInput({ onChange, value = '3d' }) {
   const combobox = useCombobox();
   const [inputValue, setInputValue] = useState(value);
+  const [previousValue, setPreviousValue] = useState(value);
 
-  // Update input value when prop value changes
   useEffect(() => {
     setInputValue(value);
+    setPreviousValue(value);
   }, [value]);
 
-  const parseTimeRange = (input) => {
-    // Handle relative time shortcuts
-    const relativeMappings = {
-      'today': { start: moment().startOf('day'), end: moment() },
-      'yesterday': { 
-        start: moment().subtract(1, 'day').startOf('day'),
-        end: moment().subtract(1, 'day').endOf('day')
-      },
-      'last month': {
-        start: moment().subtract(1, 'month').startOf('month'),
-        end: moment().subtract(1, 'month').endOf('month')
-      },
-      'last year': {
-        start: moment().subtract(1, 'year').startOf('year'),
-        end: moment().subtract(1, 'year').endOf('year')
-      },
-      'this year': {
-        start: moment().startOf('year'),
-        end: moment()
-      }
-    };
+  const handleFocus = () => {
+    setPreviousValue(inputValue);
+    setInputValue('');
+    combobox.openDropdown();
+  };
 
-    if (relativeMappings[input.toLowerCase()]) {
-      return relativeMappings[input.toLowerCase()];
+  const handleBlur = () => {
+    if (!inputValue) {
+      setInputValue(previousValue);
     }
+  };
 
-    // Handle duration formats (45m, 12h, 10d, etc.)
-    const durationMatch = input.match(/^(\d+)([mhdw])$/i);
+  const parseTimeRange = (input) => {
+    // Handle duration formats (1h, 3h, 12h, 1d, etc.)
+    const durationMatch = input.match(/^(\d+)([hdwy])$/i);
     if (durationMatch) {
       const [_, amount, unit] = durationMatch;
-      const unitMapping = { m: 'minutes', h: 'hours', d: 'days', w: 'weeks' };
+      const unitMapping = { h: 'hours', d: 'days', w: 'weeks', y: 'years' };
       return {
         start: moment().subtract(amount, unitMapping[unit.toLowerCase()]),
         end: moment()
       };
     }
-
-    // Try parsing as a date range using chrono
-    const parsed = chrono.parse(input);
-    if (parsed.length > 0) {
-      if (parsed.length === 2) {
-        // Two separate dates detected (e.g., "Jan 1 - Jan 2")
-        return {
-          start: moment(parsed[0].start.date()).startOf('day'),
-          end: moment(parsed[1].start.date()).endOf('day')
-        };
-      } else if (parsed[0].end) {
-        // One date range detected (e.g., "2:00 pm - 8:00 pm")
-        const today = moment().startOf('day');
-        return {
-          start: moment(parsed[0].start.date()).year(today.year()).month(today.month()).date(today.date()),
-          end: moment(parsed[0].end.date()).year(today.year()).month(today.month()).date(today.date())
-        };
-      } else {
-        // Single date detected
-        return {
-          start: moment(parsed[0].start.date()).startOf('day'),
-          end: moment(parsed[0].start.date()).endOf('day')
-        };
-      }
-    }
-
     return null;
   };
 
@@ -107,33 +64,68 @@ export function TimeRangeInput({ onChange, value = '3d' }) {
       <Combobox.Target>
         <TextInput
           label="Time Range"
-          placeholder="Type a time range (e.g., '45m', 'yesterday', '2:00 pm - 8:00 pm')"
+          placeholder="Type a time range (e.g., '1h', '3d', '1w')"
           value={inputValue}
           onChange={(event) => {
             setInputValue(event.currentTarget.value);
             combobox.openDropdown();
           }}
-          onClick={() => combobox.openDropdown()}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
-              handleInputSubmit(inputValue);
+              handleInputSubmit(inputValue || previousValue);
             }
           }}
         />
       </Combobox.Target>
 
-      <Combobox.Dropdown>
-        <Combobox.Options>
-          {suggestions
-            .filter(item => 
-              item.toLowerCase().includes(inputValue.toLowerCase())
-            )
-            .map((suggestion) => (
-              <Combobox.Option value={suggestion} key={suggestion}>
+      <Combobox.Dropdown
+        style={{
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          backgroundColor: 'white',
+          marginTop: '4px'
+        }}
+      >
+        <Box p="md">
+          <Text size="sm" c="dimmed" mb="md">
+            Type custom relative times like:
+          </Text>
+          <Box
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px'
+            }}
+          >
+            {suggestions[0].items.map((suggestion) => (
+              <Combobox.Option 
+                value={suggestion} 
+                key={suggestion}
+                style={{
+                  padding: '6px 12px',
+                  backgroundColor: 'var(--mantine-color-blue-0)',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  color: 'var(--mantine-color-blue-9)',
+                  '&:hover': {
+                    backgroundColor: 'var(--mantine-color-blue-6)',
+                    color: 'white'
+                  },
+                  '&[data-selected]': {
+                    backgroundColor: 'var(--mantine-color-blue-6)',
+                    color: 'white'
+                  }
+                }}
+              >
                 {suggestion}
               </Combobox.Option>
             ))}
-        </Combobox.Options>
+          </Box>
+        </Box>
       </Combobox.Dropdown>
     </Combobox>
   );
