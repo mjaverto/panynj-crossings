@@ -32,7 +32,7 @@ export function TimeRangeInput({ onChange, value = '3d' }) {
     // Handle duration formats (1h, 3h, 12h, 1d, etc.)
     const durationMatch = input.match(/^(\d+)([hdwy])$/i);
     if (durationMatch) {
-      const [_, amount, unit] = durationMatch;
+      const [, amount, unit] = durationMatch;
       const unitMapping = { h: 'hours', d: 'days', w: 'weeks', y: 'years' };
       return {
         start: moment().subtract(amount, unitMapping[unit.toLowerCase()]),
