@@ -85,6 +85,7 @@ export function TimeRangeInput({ onChange, value = '3d' }) {
           <Text size="sm" c="dimmed" mb="md">
             Type custom relative times like:
           </Text>
+          
           <Box
             style={{
               display: 'flex',
@@ -117,6 +118,9 @@ export function TimeRangeInput({ onChange, value = '3d' }) {
               </Combobox.Option>
             ))}
           </Box>
+          <Text size="xs" c="dimmed" mb="md" mt="md">
+            * Data available from 9/1/2024 onward
+          </Text>
         </Box>
       </Combobox.Dropdown>
     </Combobox>
