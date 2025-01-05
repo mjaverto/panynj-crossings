@@ -270,8 +270,8 @@ function App() {
   );
 
   return (
-    <MantineProvider>
-      <div>
+    <MantineProvider defaultColorScheme="auto">
+      <div className="App">
         <Title order={2} align="center">NYC Crossings History</Title>
         <Container size="xl">
           <Card withBorder shadow="sm" p="lg">
@@ -308,13 +308,12 @@ function App() {
                 curveType="monotone"
                 withLegend
                 series={[
-                  { name: 'Average Speed', color: 'green.6' },
-                  { name: 'Average Travel Time', color: 'red.6' },
+                  { name: 'Average Speed', color: 'teal.6' },
+                  { name: 'Average Travel Time', color: 'grape.6' }
                 ]}
-                xAxisProps={{
-                  tickFormatter: (date) => moment(date, 'YYYY-MM-DD hh:mm A').format('M/D/YY h:mma'),
-                  angle: 0,
-                }}
+                gridAxis="xy"
+                theme="dark"
+                tickLine="xy"
               />
             </Card>
           ))}

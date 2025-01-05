@@ -80,15 +80,7 @@ export function TimeRangeInput({ onChange, value = '3d' }) {
         />
       </Combobox.Target>
 
-      <Combobox.Dropdown
-        style={{
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          backgroundColor: 'white',
-          marginTop: '4px'
-        }}
-      >
+      <Combobox.Dropdown>
         <Box p="md">
           <Text size="sm" c="dimmed" mb="md">
             Type custom relative times like:
@@ -106,18 +98,18 @@ export function TimeRangeInput({ onChange, value = '3d' }) {
                 key={suggestion}
                 style={{
                   padding: '6px 12px',
-                  backgroundColor: 'var(--mantine-color-blue-0)',
+                  backgroundColor: 'var(--mantine-color-blue-light)',
                   borderRadius: '4px',
                   fontSize: '14px',
                   cursor: 'pointer',
-                  color: 'var(--mantine-color-blue-9)',
+                  color: 'var(--mantine-color-blue-filled)',
                   '&:hover': {
-                    backgroundColor: 'var(--mantine-color-blue-6)',
-                    color: 'white'
+                    backgroundColor: 'var(--mantine-color-blue-filled)',
+                    color: 'var(--mantine-color-white)'
                   },
                   '&[data-selected]': {
-                    backgroundColor: 'var(--mantine-color-blue-6)',
-                    color: 'white'
+                    backgroundColor: 'var(--mantine-color-blue-filled)',
+                    color: 'var(--mantine-color-white)'
                   }
                 }}
               >
