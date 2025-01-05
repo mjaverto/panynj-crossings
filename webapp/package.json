@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@tabler/icons-react": "^3.19.0"
+    "@tabler/icons-react": "^3.19.0",
+    "chrono-node": "^2.7.7"
   }
 }
