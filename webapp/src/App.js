@@ -222,6 +222,7 @@ function AppContent({
     } else {
       fetchAggregatedData(selectedCrossing);
     }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAutoRefreshOn, timeRange, granularity, selectedCrossing]);
 
   const controlsContent = (
