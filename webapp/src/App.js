@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Collapse, Button, Text } from '@mantine/core';
-import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Collapse, Button, Text, useMantineTheme } from '@mantine/core';
+import { IconChevronDown, IconChevronUp, IconBuildingBridge } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
@@ -15,20 +15,53 @@ const supabase = createClient('https://jurzflavaojycfbqjyex.supabase.co', 'eyJhb
 
 function App() {
   const [selectedCrossing, setSelectedCrossing] = useState('Holland Tunnel');
-
-  // New states for time range and granularity
-  const [timeRange, setTimeRange] = useState('3d');          // e.g. 1h, 3h, 12h, 1d, etc.
-  const [granularity, setGranularity] = useState('15 minutes'); // e.g. 1m, 5m, 15m, 1h, etc.
-
+  const [timeRange, setTimeRange] = useState('3d');
+  const [granularity, setGranularity] = useState('15 minutes');
   const [chartData, setChartData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(false);
-
   const [customTimeRange, setCustomTimeRange] = useState(null);
-
   const [isControlsVisible, setIsControlsVisible] = useState(true);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  return (
+    <MantineProvider defaultColorScheme="auto">
+      <AppContent 
+        selectedCrossing={selectedCrossing}
+        setSelectedCrossing={setSelectedCrossing}
+        timeRange={timeRange}
+        setTimeRange={setTimeRange}
+        granularity={granularity}
+        setGranularity={setGranularity}
+        chartData={chartData}
+        setChartData={setChartData}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+        isAutoRefreshOn={isAutoRefreshOn}
+        setIsAutoRefreshOn={setIsAutoRefreshOn}
+        customTimeRange={customTimeRange}
+        setCustomTimeRange={setCustomTimeRange}
+        isControlsVisible={isControlsVisible}
+        setIsControlsVisible={setIsControlsVisible}
+        isMobile={isMobile}
+      />
+    </MantineProvider>
+  );
+}
+
+function AppContent({ 
+  selectedCrossing, setSelectedCrossing,
+  timeRange, setTimeRange,
+  granularity, setGranularity,
+  chartData, setChartData,
+  isLoading, setIsLoading,
+  isAutoRefreshOn, setIsAutoRefreshOn,
+  customTimeRange, setCustomTimeRange,
+  isControlsVisible, setIsControlsVisible,
+  isMobile
+}) {
+  const theme = useMantineTheme();
+  
   // Decide how to interpret the timeRange selection into actual start/end timestamps
   function calculateTimeRange() {
     if (timeRange === 'custom' && customTimeRange) {
@@ -270,24 +303,23 @@ function App() {
   );
 
   return (
-    <MantineProvider defaultColorScheme="auto">
-      <div className="App">
-        <Title order={2} align="center">NYC Crossings History</Title>
+    <div className="App">
+      <main className="main-content">
+        <Title order={1} align="center" my="xl">NYC Crossings History</Title>
         <Container size="xl">
-          <Card withBorder shadow="sm" p="lg">
+          <Card 
+            withBorder 
+            shadow="sm" 
+            p="lg" 
+            style={{ 
+              position: 'relative', 
+              paddingBottom: '24px',
+              overflow: 'visible'  // This ensures the button isn't clipped
+            }}
+          >
             {isMobile ? (
               <>
-                <Button 
-                  variant="subtle"
-                  fullWidth
-                  onClick={() => setIsControlsVisible(!isControlsVisible)}
-                  rightSection={isControlsVisible ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-                >
-                  Controls
-                </Button>
-                <Collapse in={isControlsVisible}>
-                  {controlsContent}
-                </Collapse>
+                {controlsContent}
               </>
             ) : (
               controlsContent
@@ -318,8 +350,19 @@ function App() {
             </Card>
           ))}
         </Container>
-      </div>
-    </MantineProvider>
+      </main>
+      <footer style={{
+        padding: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        color: 'var(--mantine-color-dimmed)'
+      }}>
+        <Text size="sm">Made in Brooklyn</Text>
+        <IconBuildingBridge size={18} style={{ transform: 'translateY(-1px)' }} />
+      </footer>
+    </div>
   );
 }
 
