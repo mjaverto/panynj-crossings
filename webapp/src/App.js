@@ -4,34 +4,35 @@ import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, 
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/charts/styles.css';
-import { DateTimePicker } from '@mantine/dates';
 import { LineChart } from '@mantine/charts';
 import moment from 'moment-timezone';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { TimeRangeInput, suggestions } from './components/TimeRangeInput';
 
 // Supabase client initialization 
 const supabase = createClient('https://jurzflavaojycfbqjyex.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1cnpmbGF2YW9qeWNmYnFqeWV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ2ODIxNzcsImV4cCI6MjA0MDI1ODE3N30.pzgMDzfizUDWa5pBrnNLklTKd2Gr-zhVnLWPuWO35fc');
 
 function App() {
   const [selectedCrossing, setSelectedCrossing] = useState('Holland Tunnel');
-  const [selectedDateTime, setSelectedDateTime] = useState(new Date());
 
   // New states for time range and granularity
-  const [timeRange, setTimeRange] = useState('1h');          // e.g. 1h, 3h, 12h, 1d, etc.
+  const [timeRange, setTimeRange] = useState('3d');          // e.g. 1h, 3h, 12h, 1d, etc.
   const [granularity, setGranularity] = useState('15 minutes'); // e.g. 1m, 5m, 15m, 1h, etc.
 
   const [chartData, setChartData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(false);
 
-  const selectedDateTimeRef = useRef(selectedDateTime);
-
-  useEffect(() => {
-    selectedDateTimeRef.current = selectedDateTime;
-  }, [selectedDateTime]);
+  const [customTimeRange, setCustomTimeRange] = useState(null);
 
   // Decide how to interpret the timeRange selection into actual start/end timestamps
   function calculateTimeRange() {
+    if (timeRange === 'custom' && customTimeRange) {
+      return {
+        startTime: customTimeRange.startTime,
+        endTime: customTimeRange.endTime
+      };
+    }
+
     const endTime = moment().tz('America/New_York');
     let startTime = endTime.clone();
     switch (timeRange) {
@@ -66,7 +67,7 @@ function App() {
         startTime.subtract(90, 'days');
         break;
       default:
-        startTime.subtract(1, 'hours');
+        startTime.subtract(3, 'days');
     }
     return { startTime, endTime };
   }
@@ -173,15 +174,6 @@ function App() {
         <Container size="xl">
 
           <Card withBorder shadow="sm" p="lg">
-            {/* Existing date/time picker, for example */}
-            <DateTimePicker
-              label="Pick a custom date/time (optional)"
-              value={selectedDateTime}
-              onChange={value => {
-                setSelectedDateTime(value);
-                setSelectedCrossing('All');
-              }}
-            />
 
             <Switch
               label="Auto-Refresh"
@@ -205,22 +197,19 @@ function App() {
             />
 
             {/* New “time range” control, similar to AWS CloudWatch */}
-            <Select
-              label="Time Range"
-              data={[
-                { value: '1h', label: 'Last 1 hour' },
-                { value: '3h', label: 'Last 3 hours' },
-                { value: '12h', label: 'Last 12 hours' },
-                { value: '1d', label: 'Last 1 day' },
-                { value: '3d', label: 'Last 3 days' },
-                { value: '1w', label: 'Last 1 week' },
-                { value: '2w', label: 'Last 2 weeks' },
-                { value: '30d', label: 'Last 30 days' },
-                { value: '60d', label: 'Last 60 days' },
-                { value: '90d', label: 'Last 90 days' }
-              ]}
+            <TimeRangeInput 
               value={timeRange}
-              onChange={(val) => setTimeRange(val)}
+              onChange={({ startTime, endTime, displayValue }) => {
+                if (suggestions.includes(displayValue)) {
+                  // If it's one of our predefined values (like '3d', '1w', etc)
+                  setTimeRange(displayValue);
+                  setCustomTimeRange(null);
+                } else {
+                  // If it's a custom time range
+                  setTimeRange('custom');
+                  setCustomTimeRange({ startTime, endTime });
+                }
+              }}
               mt="md"
             />
 
