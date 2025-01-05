@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Collapse, Button, Text, useMantineTheme } from '@mantine/core';
-import { IconChevronDown, IconChevronUp, IconBuildingBridge } from '@tabler/icons-react';
+import { Title, Grid, Card, LoadingOverlay, MantineProvider, Switch, Container, Select, Text, useMantineTheme } from '@mantine/core';
+import { IconBuildingBridge } from '@tabler/icons-react';
 import { useMediaQuery } from '@mantine/hooks';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';

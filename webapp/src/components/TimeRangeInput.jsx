@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Combobox, TextInput, useCombobox, Text, Box } from '@mantine/core';
-import * as chrono from 'chrono-node';
 import moment from 'moment-timezone';
 
 export const suggestions = [
